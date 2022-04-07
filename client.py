@@ -12,7 +12,7 @@ def init_argparse():
         usage="%(prog)s [OPTION]...",
     )
     parser.add_argument("-c", "--command",
-                        help="ID задания",
+                        help="Название задания(revert, shuffle, repeat)",
                         )
     parser.add_argument("-d", "--data",
                         help="Строка для задания",
@@ -32,12 +32,12 @@ def init_argparse():
 def main():
     parser = init_argparse()
     args = parser.parse_args()
-    command_id = args.command
+    command = args.command
     data = args.data
     task_status_id = args.task_status
     task_response_id = args.task_response
 
-    if not all([command_id, data]) and not any([task_status_id, task_response_id]):
+    if not all([command, data]) and not any([task_status_id, task_response_id]):
         print("Должны быть введены либо аргументы: --command и --data, либо --task")
         return
     if all([task_status_id, task_response_id]):
@@ -47,18 +47,16 @@ def main():
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.connect((IP, PORT))
 
-    if all([command_id, data]):
-        request_data = pickle.dumps(["start", command_id, data])
+    if all([command, data]):
+        request_data = pickle.dumps(["start", command, data])
     elif task_status_id:
         request_data = pickle.dumps(["status", task_status_id])
     elif task_response_id:
         request_data = pickle.dumps(["response", task_response_id])
     connection.send(request_data)
     rd = connection.recv(4096)
-    try:
-        print(pickle.loads(rd))
-    except:
-        print(rd.decode())
+    print(rd.decode())
+
     connection.close()
 
 

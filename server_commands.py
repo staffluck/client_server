@@ -2,8 +2,18 @@ from abc import ABCMeta, abstractmethod
 from uuid import uuid4
 from time import sleep
 
+registered_commands = {}
 
-class BaseCommand(metaclass=ABCMeta):
+class ABCMeta_(ABCMeta):
+
+    def __new__(cls, cls_name, bases, attrs):
+        created_class = super().__new__(cls, cls_name, bases, attrs)
+        if bases:  # Если это не BaseCommand
+            registered_commands[attrs["name"]] = created_class
+        return created_class
+
+
+class BaseCommand(metaclass=ABCMeta_):
 
     def __init__(self, data):
         self.data = data
@@ -14,6 +24,7 @@ class BaseCommand(metaclass=ABCMeta):
 
 
 class RevertCommand(BaseCommand):
+    name = "revert"
     simulated_delay = 2
 
     def process_data(self):
@@ -21,6 +32,7 @@ class RevertCommand(BaseCommand):
 
 
 class ShuffleCommand(BaseCommand):
+    name = "shuffle"
     simulated_delay = 5
 
     def process_data(self):
@@ -34,6 +46,7 @@ class ShuffleCommand(BaseCommand):
 
 
 class RepeatCommand(BaseCommand):
+    name = "repeat"
     simulated_delay = 7
 
     def process_data(self):
@@ -45,20 +58,18 @@ class RepeatCommand(BaseCommand):
 
 class CommandHandler:
 
-    def __init__(self, data: str, command_id: int):
+    def __init__(self, data: str, command_name: str):
         self.data: str = data
-        self.command_id: int = command_id
+        self.command_name: str = command_name
         self.status: str = "В очереди"
         self.response: str = None
 
         self.id: str = self.generate_unique_id()
         self.command: BaseCommand = self.get_command()(data)
 
-    def process_data(self):
+    def process_data(self) -> None:
         self.status = "В искусственной задержке"
-        print("HELLO")
         self.simulate_delay()
-        print("HELLO")
         self.status = "Выполняется"
         data = self.command.process_data()
         self.status = "Завершено"
@@ -79,17 +90,14 @@ class CommandHandler:
     def get_encoded_id(self) -> bytes:
         return self.encode(self.id)
 
-    def generate_unique_id(self) -> uuid4:
+    def generate_unique_id(self) -> str:
         return str(uuid4())
 
-    def simulate_delay(self):
+    def simulate_delay(self) -> None:
         sleep(self.command.simulated_delay)
 
     def get_command(self) -> BaseCommand:
-        if self.command_id == 1:
-            return RevertCommand
-        elif self.command_id == 2:
-            return ShuffleCommand
-        elif self.command_id == 3:
-            return RepeatCommand
-        raise Exception("Неизвестная команда")
+        command = registered_commands.get(self.command_name)
+        if command:
+            return command
+        raise Exception("Не найдена команда под названием {}".format(self.command_name))

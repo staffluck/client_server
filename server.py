@@ -30,12 +30,11 @@ class TCPHandler(BaseRequestHandler):
         action = data[0]
 
         if action == "start":
-            _, command_id, data = data
+            _, command_name, data = data
             try:
-                command_handler = CommandHandler(data, int(command_id))
+                command_handler = CommandHandler(data, command_name)
             except Exception as e:
-                print(e)
-                response = "Неизвестная команда".encode("utf-8")
+                response = str(e).encode("utf-8")
             else:
                 tasks_db[command_handler.id] = command_handler
                 tasks_queue.put(command_handler)
