@@ -5,7 +5,7 @@ import pickle
 import queue
 import threading
 
-from server_commands import CommandHandler
+from server_commands import CommandHandler, CommandNotFoundException
 
 
 tasks_db: dict[str, CommandHandler] = {}  # id : command_handler
@@ -33,18 +33,20 @@ class TCPHandler(BaseRequestHandler):
             _, command_name, data = data
             try:
                 command_handler = CommandHandler(data, command_name)
-            except Exception as e:
+            except CommandNotFoundException as e:
                 response = str(e).encode("utf-8")
             else:
                 tasks_db[command_handler.id] = command_handler
                 tasks_queue.put(command_handler)
                 response = command_handler.get_encoded_id()
+
         elif action == "status":
             command_handler = tasks_db.get(data[1])
             if command_handler:
                 response = command_handler.get_encoded_status()
             else:
                 response = "Несуществующий task_id".encode("utf-8")
+
         elif action == "response":
             command_handler = tasks_db.get(data[1])
             if command_handler:

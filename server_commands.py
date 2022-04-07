@@ -4,6 +4,9 @@ from time import sleep
 
 registered_commands = {}
 
+class CommandNotFoundException(Exception):
+    pass
+
 class ABCMeta_(ABCMeta):
 
     def __new__(cls, cls_name, bases, attrs):
@@ -100,4 +103,4 @@ class CommandHandler:
         command = registered_commands.get(self.command_name)
         if command:
             return command
-        raise Exception("Не найдена команда под названием {}".format(self.command_name))
+        raise CommandNotFoundException("Не найдена команда под названием {}".format(self.command_name))
