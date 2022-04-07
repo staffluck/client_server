@@ -48,7 +48,7 @@ def main():
     interactive = args.interactive
 
     if not all([command, data]) and not any([task_status_id, task_response_id]):
-        print("Должны быть введены либо аргументы: --command и --data, либо --task")
+        print("Должны быть введены либо аргументы: --command и --data, либо --task-response или --task-status")
         return
     if all([task_status_id, task_response_id]):
         print("--task-response и --task-status выполняются отдельно")
