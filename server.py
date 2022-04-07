@@ -1,11 +1,40 @@
+from __future__ import annotations
+
 from socketserver import BaseRequestHandler, ThreadingMixIn, TCPServer
+import pickle
+import queue
+import threading
+
+from setuptools import Command
+
+from server_commands import CommandHandler
+
+
+tasks_db: dict[str, Command] = {}  # id : command_handler
+
+q = queue.Queue()
 
 class TCPHandler(BaseRequestHandler):
 
     def handle(self):
-        while True:
-            data = self.request.recv(4096)
-            self.request.sendall(data)
+        raw_data = self.request.recv(4096)
+        try:
+            data = pickle.loads(raw_data)
+        except:
+            data = raw_data.decode()
+
+        if isinstance(data, list):
+            command_id, data = data
+            command_handler = CommandHandler(data, int(command_id))
+            tasks_db[command_handler.id] = command_handler
+            response = pickle.dumps(list(tasks_db.keys()))
+        else:
+            command_handler = tasks_db.get(data)
+            if command_handler:
+                response = command_handler.get_encoded_status()
+            else:
+                raise Exception("Несуществующий task_id")
+        self.request.sendall(response)
 
 class ThreadedTCPServer(ThreadingMixIn, TCPServer):
     allow_reuse_address = True

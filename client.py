@@ -11,13 +11,14 @@ def init_argparse():
     parser = argparse.ArgumentParser(
         usage="%(prog)s [OPTION]...",
     )
-    parser.add_argument("-t", "--task",
+    parser.add_argument("-c", "--command",
                         help="ID задания",
-                        required=True
                         )
     parser.add_argument("-d", "--data",
                         help="Строка для задания",
-                        required=True
+                        )
+    parser.add_argument("-t", "--task",
+                        help="ID задачи",
                         )
     # parser.add_argument('-i', '--interactive',
     #                     help="Интерактивный режим(Пакетный)")
@@ -27,17 +28,27 @@ def init_argparse():
 def main():
     parser = init_argparse()
     args = parser.parse_args()
-    task_id = args.task
+    command_id = args.command
     data = args.data
+    task_id = args.task
+
+    if not all([command_id, data]) and not task_id:
+        print("Должны быть введены либо аргументы: --command и --data, либо --task")
 
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.connect((IP, PORT))
 
-    request_data = pickle.dumps([task_id, data])
 
+    if all([command_id, data]):
+        request_data = pickle.dumps([command_id, data])
+    else:
+        request_data = args.task.encode("utf-8")
     connection.send(request_data)
     rd = connection.recv(4096)
-    print(pickle.loads(rd))
+    try:
+        print(pickle.loads(rd))
+    except:
+        print(rd.decode())
     connection.close()
 
 
