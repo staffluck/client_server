@@ -30,7 +30,7 @@ class RevertCommand(BaseCommand):
     name = "revert"
     simulated_delay = 2
 
-    def process_data(self):
+    def process_data(self) -> str:
         return self.data[::-1]
 
 
@@ -38,7 +38,7 @@ class ShuffleCommand(BaseCommand):
     name = "shuffle"
     simulated_delay = 5
 
-    def process_data(self):
+    def process_data(self) -> str:
         data = self.data
         shuffled_data = ""
         while data:
@@ -52,7 +52,7 @@ class RepeatCommand(BaseCommand):
     name = "repeat"
     simulated_delay = 7
 
-    def process_data(self):
+    def process_data(self) -> str:
         result = ""
         for index, key in enumerate(self.data):
             result += (index + 1) * key

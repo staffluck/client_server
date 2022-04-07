@@ -1,3 +1,4 @@
+from ctypes import Union
 import socket
 import argparse
 import pickle
@@ -7,7 +8,7 @@ IP = "localhost"
 PORT = 5000
 
 
-def init_argparse():
+def init_argparse() -> argparse.PARSER:
     parser = argparse.ArgumentParser(
         usage="%(prog)s [OPTION]...",
     )
@@ -29,7 +30,7 @@ def init_argparse():
     return parser
 
 
-def send_request_get_response(connection: socket.socket, data: pickle.Pickler):
+def send_request_get_response(connection: socket.socket, data: pickle.Pickler) -> Union(str, socket.socket):
     connection.send(data)
     rd = connection.recv(1024)
     response = rd.decode()
