@@ -25,15 +25,19 @@ class TCPHandler(BaseRequestHandler):
 
         if isinstance(data, list):
             command_id, data = data
-            command_handler = CommandHandler(data, int(command_id))
-            tasks_db[command_handler.id] = command_handler
-            response = pickle.dumps(list(tasks_db.keys()))
+            try:
+                command_handler = CommandHandler(data, int(command_id))
+            except Exception:
+                response = "Неизвестная команда".encode("utf-8")
+            else:
+                tasks_db[command_handler.id] = command_handler
+                response = pickle.dumps(list(tasks_db.keys()))
         else:
             command_handler = tasks_db.get(data)
             if command_handler:
                 response = command_handler.get_encoded_status()
             else:
-                raise Exception("Несуществующий task_id")
+                response = "Несуществующий task_id".encode("utf-8")
         self.request.sendall(response)
 
 class ThreadedTCPServer(ThreadingMixIn, TCPServer):
