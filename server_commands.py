@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from uuid import uuid4
+from time import sleep
+
 
 class BaseCommand(metaclass=ABCMeta):
 
@@ -31,22 +33,45 @@ class ShuffleCommand(BaseCommand):
         return shuffled_data
 
 
+class RepeatCommand(BaseCommand):
+    simulated_delay = 7
+
+    def process_data(self):
+        result = ""
+        for index, key in enumerate(self.data):
+            result += (index + 1) * key
+        return result
+
+
 class CommandHandler:
 
     def __init__(self, data: str, command_id: int):
         self.data: str = data
         self.command_id: int = command_id
-        self.status: str = "Выполняется"
+        self.status: str = "В очереди"
         self.response: str = None
 
         self.id: str = self.generate_unique_id()
         self.command: BaseCommand = self.get_command()(data)
 
+    def process_data(self):
+        self.status = "В искусственной задержке"
+        print("HELLO")
+        self.simulate_delay()
+        print("HELLO")
+        self.status = "Выполняется"
+        data = self.command.process_data()
+        self.status = "Завершено"
+        self.response = data
+
     def encode(self, data) -> bytes:
         return data.encode("utf-8")
 
     def get_encoded_response(self) -> bytes:
-        return self.encode(self.response)
+        if self.response:
+            return self.encode(self.response)
+        else:
+            return self.encode("Задача не выполнена! Её статус: {}".format(self.status))
 
     def get_encoded_status(self) -> bytes:
         return self.encode(self.status)
@@ -57,11 +82,14 @@ class CommandHandler:
     def generate_unique_id(self) -> uuid4:
         return str(uuid4())
 
+    def simulate_delay(self):
+        sleep(self.command.simulated_delay)
+
     def get_command(self) -> BaseCommand:
         if self.command_id == 1:
             return RevertCommand
         elif self.command_id == 2:
             return ShuffleCommand
         elif self.command_id == 3:
-            return ShuffleCommand
+            return RepeatCommand
         raise Exception("Неизвестная команда")

@@ -17,9 +17,13 @@ def init_argparse():
     parser.add_argument("-d", "--data",
                         help="Строка для задания",
                         )
-    parser.add_argument("-t", "--task",
-                        help="ID задачи",
+    parser.add_argument("-ts", "--task-status",
+                        help="ID задачи для получения статуса",
                         )
+    parser.add_argument("-tr", "--task-response",
+                        help="ID задачи для получения результата",
+                        )
+    parser.add_argument
     # parser.add_argument('-i', '--interactive',
     #                     help="Интерактивный режим(Пакетный)")
     return parser
@@ -30,19 +34,25 @@ def main():
     args = parser.parse_args()
     command_id = args.command
     data = args.data
-    task_id = args.task
+    task_status_id = args.task_status
+    task_response_id = args.task_response
 
-    if not all([command_id, data]) and not task_id:
+    if not all([command_id, data]) and not any([task_status_id, task_response_id]):
         print("Должны быть введены либо аргументы: --command и --data, либо --task")
+        return
+    if all([task_status_id, task_response_id]):
+        print("--task-response и --task-status выполняются отдельно")
+        return
 
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.connect((IP, PORT))
 
-
     if all([command_id, data]):
-        request_data = pickle.dumps([command_id, data])
-    else:
-        request_data = args.task.encode("utf-8")
+        request_data = pickle.dumps(["start", command_id, data])
+    elif task_status_id:
+        request_data = pickle.dumps(["status", task_status_id])
+    elif task_response_id:
+        request_data = pickle.dumps(["response", task_response_id])
     connection.send(request_data)
     rd = connection.recv(4096)
     try:
