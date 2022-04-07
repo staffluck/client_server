@@ -68,24 +68,28 @@ def main():
         rd = connection.recv(1024)
         print(rd.decode())
     else:
-        start_request_data = pickle.dumps(["start", command, data])
-        task_id, connection = send_request_get_response(connection, start_request_data)
-        print(task_id)
-        if task_id == "Не найдена команда под названием {}".format(command):
-            return
-        last_status = ""
-        while True:
-            status_request_data = pickle.dumps(["status", task_id])
-            status, connection = send_request_get_response(connection, status_request_data)
-            if last_status != status:
-                last_status = status
-                print(last_status)
-                if last_status == "Завершено":
-                    break
-            sleep(2)
-        response_request_data = pickle.dumps(["response", task_id])
-        response, connection = send_request_get_response(connection, response_request_data)
-        print(response)
+        try:
+            start_request_data = pickle.dumps(["start", command, data])
+            task_id, connection = send_request_get_response(connection, start_request_data)
+            print(task_id)
+            if task_id == "Не найдена команда под названием {}".format(command):
+                return
+            last_status = ""
+            while True:
+                status_request_data = pickle.dumps(["status", task_id])
+                status, connection = send_request_get_response(connection, status_request_data)
+                if last_status != status:
+                    last_status = status
+                    print(last_status)
+                    if last_status == "Завершено":
+                        break
+                sleep(2)
+            response_request_data = pickle.dumps(["response", task_id])
+            response, connection = send_request_get_response(connection, response_request_data)
+            print(response)
+        except KeyboardInterrupt:
+            print("Досрочный выход..")
+            pass
     connection.close()
 
 

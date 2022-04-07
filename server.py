@@ -28,7 +28,7 @@ class TCPHandler(BaseRequestHandler):
         try:
             data = pickle.loads(raw_data)
         except EOFError:
-            pass
+            return
         action = data[0]
 
         if action == "start":
