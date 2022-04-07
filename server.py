@@ -25,8 +25,10 @@ class TCPHandler(BaseRequestHandler):
 
     def handle(self):
         raw_data = self.request.recv(4096)
-        data = pickle.loads(raw_data)
-
+        try:
+            data = pickle.loads(raw_data)
+        except EOFError:
+            pass
         action = data[0]
 
         if action == "start":
